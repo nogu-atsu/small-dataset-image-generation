@@ -16,8 +16,14 @@ PyYAML
 ## Run
 - Multiple GPU training is supported only for BigGAN.
 
+for BigGAN
 ```
 mpirun python ./train.py --config_path configs/default.yml
+```
+
+for SNGAN
+```
+python ./train.py --config_path configs/default.yml
 ```
 
 
