@@ -18,37 +18,6 @@ def upsample_conv(x, conv):
     return conv(_upsample(x))
 
 
-def copy_conv(link, w, b=None, u=None):
-    if u is not None:
-        link.u[:] = u
-    link.W.data[:] = w.transpose(3, 2, 0, 1)
-    if b is not None:
-        link.b.data[:] = b
-
-
-def copy_hbn(link, gamma, gamma_u, beta, beta_u, avg_mean, avg_var):
-    copy_linear(link.linear_gamma, gamma, u=gamma_u)
-    copy_linear(link.linear_beta, beta, u=beta_u)
-    link.avg_mean[:] = avg_mean
-    link.avg_var[:] = avg_var
-    # layer.eps = eps
-
-
-def copy_bn(link, gamma, beta, avg_mean, avg_var):
-    link.beta.data[:] = beta
-    link.gamma.data[:] = gamma
-    link.avg_mean[:] = avg_mean
-    link.avg_var[:] = avg_var
-
-
-def copy_linear(link, w, b=None, u=None):
-    if u is not None:
-        link.u[:] = u
-    link.W.data[:] = w.transpose()
-    if b is not None:
-        link.b.data[:] = b
-
-
 class ResBlock(chainer.Chain):
     def __init__(self, in_size, in_channel, out_channel):
         super(ResBlock, self).__init__()
@@ -64,29 +33,6 @@ class ResBlock(chainer.Chain):
         h = upsample_conv(F.relu(h), self.conv0)
         h = self.conv1(F.relu(self.HyperBN_1(h, z, c)))
         return h + upsample_conv(x, self.conv_sc)
-
-    def copy_from_tf(self, weights_dict, name):
-        copy_conv(self.conv0, weights_dict[name + '/conv0/w/ema_b999900'],
-                  weights_dict[name + '/conv0/b/ema_b999900'],
-                  weights_dict[name + '/conv0/u0'], )
-        copy_conv(self.conv1, weights_dict[name + '/conv1/w/ema_b999900'],
-                  weights_dict[name + '/conv1/b/ema_b999900'],
-                  weights_dict[name + '/conv1/u0'])
-        copy_conv(self.conv_sc, weights_dict[name + '/conv_sc/w/ema_b999900'],
-                  weights_dict[name + '/conv_sc/b/ema_b999900'],
-                  weights_dict[name + '/conv_sc/u0'])
-        copy_hbn(self.HyperBN, weights_dict[name + '/HyperBN/gamma/w/ema_b999900'],
-                 weights_dict[name + '/HyperBN/gamma/u0'],
-                 weights_dict[name + '/HyperBN/beta/w/ema_b999900'],
-                 weights_dict[name + '/HyperBN/beta/u0'],
-                 weights_dict[name + '/CrossReplicaBN/accumulated_mean'],
-                 weights_dict[name + '/CrossReplicaBN/accumulated_var'])
-        copy_hbn(self.HyperBN_1, weights_dict[name + '/HyperBN_1/gamma/w/ema_b999900'],
-                 weights_dict[name + '/HyperBN_1/gamma/u0'],
-                 weights_dict[name + '/HyperBN_1/beta/w/ema_b999900'],
-                 weights_dict[name + '/HyperBN_1/beta/u0'],
-                 weights_dict[name + '/CrossReplicaBN_1/accumulated_mean'],
-                 weights_dict[name + '/CrossReplicaBN_1/accumulated_var'])
 
 
 class NonLocalBlock(chainer.Chain):
@@ -111,17 +57,6 @@ class NonLocalBlock(chainer.Chain):
         o = F.matmul(h, attention, transb=True).reshape(batchsize, self.ch // 2, w, w)
         o = self.o_conv(o)
         return x + self.gamma.W * o
-
-    def copy_from_tf(self, weights_dict, name):
-        copy_conv(self.theta, weights_dict[name + '/theta/w/ema_b999900'],
-                  u=weights_dict[name + '/theta/u0'])
-        copy_conv(self.phi, weights_dict[name + '/phi/w/ema_b999900'],
-                  u=weights_dict[name + '/phi/u0'])
-        copy_conv(self.g, weights_dict[name + '/g/w/ema_b999900'],
-                  u=weights_dict[name + '/g/u0'])
-        copy_conv(self.o_conv, weights_dict[name + '/o_conv/w/ema_b999900'],
-                  u=weights_dict[name + '/o_conv/u0'])
-        self.gamma.W.data = weights_dict[name + '/gamma/ema_b999900']
 
 
 class Generator(chainer.Chain):
@@ -155,23 +90,3 @@ class Generator(chainer.Chain):
         h = F.relu(self.ScaledCrossReplicaBN(h))
         h = F.tanh(self.conv_2d(h))
         return h
-
-    def copy_params_from_tf(self, weights_dict):
-        copy_linear(self.linear, weights_dict['linear/w/ema_b999900'])
-        copy_linear(self.G_linear, weights_dict['Generator/G_Z/G_linear/w/ema_b999900'],
-                    weights_dict['Generator/G_Z/G_linear/b/ema_b999900'],
-                    weights_dict['Generator/G_Z/G_linear/u0'])
-        self.GBlock.copy_from_tf(weights_dict, 'Generator/GBlock')
-        self.GBlock_1.copy_from_tf(weights_dict, 'Generator/GBlock_1')
-        self.GBlock_2.copy_from_tf(weights_dict, 'Generator/GBlock_2')
-        self.GBlock_3.copy_from_tf(weights_dict, 'Generator/GBlock_3')
-        self.GBlock_4.copy_from_tf(weights_dict, 'Generator/GBlock_4')
-        self.attention.copy_from_tf(weights_dict, 'Generator/attention')
-        self.GBlock_5.copy_from_tf(weights_dict, 'Generator/GBlock_5')
-        copy_bn(self.ScaledCrossReplicaBN, weights_dict['Generator/ScaledCrossReplicaBN/gamma/ema_b999900'],
-                weights_dict['Generator/ScaledCrossReplicaBN/beta/ema_b999900'],
-                weights_dict['Generator/ScaledCrossReplicaBNbn/accumulated_mean'],
-                weights_dict['Generator/ScaledCrossReplicaBNbn/accumulated_var'])
-        copy_conv(self.conv_2d, weights_dict['Generator/conv_2d/w/ema_b999900'],
-                  weights_dict['Generator/conv_2d/b/ema_b999900'],
-                  weights_dict['Generator/conv_2d/u0'])
