@@ -139,7 +139,7 @@ if __name__ == "__main__":
     config = yaml_utils.Config(yaml.load(open(args.config_path)))
     os.makedirs(f"{config.save_path}{now}", exist_ok=True)
     shutil.copy(args.config_path, f"{config.save_path}{now}/config{now}.yml")
-    shutil.copy("fewshot_generation_mn.py", f"{config.save_path}{now}/fewshot_generation_mn.py")
+    shutil.copy("train.py", f"{config.save_path}{now}/train.py")
     print("snapshot->", now)
 
     # image size
