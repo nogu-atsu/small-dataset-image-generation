@@ -14,9 +14,11 @@ PyYAML
 ```
 
 ## Run
+- Place `sngan.npz` and `biggan.npz` in this directory
+
 - Multiple GPU training is supported only for BigGAN.
 
-for BigGAN
+for BigGAN (We used 4 GPUs for training)
 ```
 mpirun python ./train.py --config_path configs/default.yml
 ```
