@@ -1,6 +1,6 @@
 # Small dataset image generation
 
-Chainer implementation of small dataset image generation.
+Official minimal implementation of small dataset image generation.
 
 ## Requirements
 
