@@ -151,7 +151,7 @@ if __name__ == "__main__":
         comm = None
     # args = Args()
 
-    device = args.gpu if comm is None else comm.intra_rank  # プロセスのランクでGPUデバイスを割り振る
+    device = args.gpu if comm is None else comm.intra_rank
     chainer.cuda.get_device(device).use()
 
     xp = cuda.cupy
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
     img = xp.array(get_dataset(image_size, config))
 
-    if comm is None or comm.rank == 0:  # ランク0のプロセスでのみデータセットを作る
+    if comm is None or comm.rank == 0:
         perm_dataset = np.arange(len(img))
     else:
         perm_dataset = None
