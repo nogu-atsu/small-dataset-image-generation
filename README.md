@@ -1,6 +1,6 @@
 # Image Generation from Small Datasets via Batch Statistics Adaptation
 
-Official **minimal** implementation of Image Generation from Small Datasets via Batch Statistics Adaptation https://arxiv.org/abs/1904.01774.
+The author's official **minimal** implementation of Image Generation from Small Datasets via Batch Statistics Adaptation https://arxiv.org/abs/1904.01774.
 
 Clean codes will be available soon.
 
