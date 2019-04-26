@@ -30,4 +30,5 @@ for SNGAN
 python ./train.py --config_path configs/default.yml
 ```
 
-
+## Acknowledgement
+Pytorch [re-implementation](https://github.com/apple2373/PyTorch-SmallGAN) from Satoshi Tsutsui and Minjun Li. 
