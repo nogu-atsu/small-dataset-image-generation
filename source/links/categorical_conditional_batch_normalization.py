@@ -81,6 +81,12 @@ class CategoricalConditionalBatchNormalization(ConditionalBatchNormalization):
             beta_c = self.betas(c)
         return super(CategoricalConditionalBatchNormalization, self).__call__(x, gamma_c, beta_c, **kwargs)
 
+    def initialize_params(self, gamma, beta):
+        if gamma:
+            self.gammas.W.array = self.xp.ones_like(self.gammas.W.array)
+        if beta:
+            self.betas.W.array = self.xp.zeros_like(self.betas.W.array)
+
     def start_finetuning(self):
         """Resets the population count for collecting population statistics.
         This method can be skipped if it is the first time to use the
