@@ -32,6 +32,7 @@ l_patch_dis: 0.0
 l_gp: 0.0
 l_per: 0.001 # if negative adaptive learning rate, else use l_per
 perceptual_type: l1
+normalize_l1_loss: False
 loss_type: nsgan
 perceptual: True  # use perceptual loss
 tmp_for_test: 0.3

@@ -66,8 +66,10 @@ class AdaGenerator(chainer.Chain):
         losses = []
 
         loss = F.mean_absolute_error(x, target_)
-        # losses.append(backward(loss / loss.array))
-        losses.append(backward(loss))
+        if self.config.normalize_l1_loss:
+            losses.append(backward(loss / loss.array))
+        else:
+            losses.append(backward(loss))
 
         if vgg is not None:
             with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
