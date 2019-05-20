@@ -7,8 +7,8 @@ from chainer import Variable, optimizers, cuda, initializers
 import chainermn
 from PIL import Image
 
-from biggan import Generator
-from gen_models.sngan import ResNetGeneratorInitialScaleShift as SNGAN
+from gen_models.biggan import BIGGAN
+from gen_models.sngan import SNGAN
 
 
 def backward(loss):
@@ -42,7 +42,7 @@ class AdaGenerator(chainer.Chain):
             z = xp.array(z)
         else:
             z = xp.random.normal(0, tmp, size=(n, self.dim_z)).astype("float32")
-        #
+
         h = self.forward(z)
         return h
 
@@ -64,12 +64,11 @@ class AdaGenerator(chainer.Chain):
         target_ = target[perm]
         x, z = self(perm, return_z=True)
         losses = []
-        # x = x.array if hinge and x is None else x  # when only update classifier
-        loss = F.mean_absolute_error(x, target_)
-        losses.append(backward(loss / loss.array))
 
-        # x_resize = x if x.shape[2] == 256 else F.unpooling_2d(x, 2, 2, 0, outsize=(256, 256))
-        # target_resize = target_ if target_.shape[2] == 256 else F.unpooling_2d(target, 2, 2, 0, outsize=(256, 256))
+        loss = F.mean_absolute_error(x, target_)
+        # losses.append(backward(loss / loss.array))
+        losses.append(backward(loss))
+
         if vgg is not None:
             with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
                 mean = xp.array([103.939, 116.779, 123.68], dtype="float32")[None, :, None, None]
@@ -94,7 +93,6 @@ class AdaGenerator(chainer.Chain):
                     l_per = 1 / loss.array / 10 if self.l_per < 0 or self.l_per > 1000 else self.l_per
                     losses.append(backward(loss * l_per))
                 chainer.reporter.report({f'loss_{layer}': loss})
-            # loss += F.mean(F.square(z)) * self.lam
 
         if self.l_emd > 0:
             losses.append(backward(self.EMD(self.z.W[perm]) * self.l_emd))
@@ -129,11 +127,13 @@ class AdaGenerator(chainer.Chain):
             dis_fake = dis(fake)
             if self.config.loss_type == "wgan-gp":
                 loss = F.mean(dis_real) - F.mean(dis_fake)
-                loss += F.mean(F.batch_l2_norm_squared(chainer.grad([loss], [real], enable_double_backprop=True)[0])) * 1000
+                loss += F.mean(
+                    F.batch_l2_norm_squared(chainer.grad([loss], [real], enable_double_backprop=True)[0])) * 1000
             elif self.config.loss_type == "nsgan":
                 loss = F.sigmoid_cross_entropy(dis_real, self.xp.ones(dis_real.shape, dtype="int32")) + \
                        F.sigmoid_cross_entropy(dis_fake, self.xp.zeros(dis_fake.shape, dtype="int32"))
-                loss += F.mean(F.batch_l2_norm_squared(chainer.grad([loss], [real], enable_double_backprop=True)[0])) * 1000
+                loss += F.mean(
+                    F.batch_l2_norm_squared(chainer.grad([loss], [real], enable_double_backprop=True)[0])) * 1000
             else:
                 raise NotImplementedError()
         return loss
@@ -251,7 +251,7 @@ class AdaBIGGAN(AdaGenerator):
             self.config = config
             self.comm = comm
 
-        self.gen = Generator()
+        self.gen = BIGGAN()
         self.dim_z = 140
         params = {}
         if config.initial_z == "zero":
