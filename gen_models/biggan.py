@@ -59,10 +59,10 @@ class NonLocalBlock(chainer.Chain):
         return x + self.gamma.W * o
 
 
-class Generator(chainer.Chain):
+class BIGGAN(chainer.Chain):
     def __init__(self, ch=96):
         self.ch = ch
-        super(Generator, self).__init__()
+        super(BIGGAN, self).__init__()
         with self.init_scope():
             self.linear = L.Linear(1000, 128, nobias=True)
             self.G_linear = SNLinear(20, 4 * 4 * 16 * ch)
