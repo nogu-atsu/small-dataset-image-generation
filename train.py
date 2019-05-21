@@ -146,7 +146,10 @@ if __name__ == "__main__":
     config.image_size = {"SNGAN": 128, "BIGGAN": 256}[config.gan_type]
 
     if config.gan_type == "BIGGAN":
-        comm = chainermn.create_communicator(args.communicator)
+        try:
+            comm = chainermn.create_communicator(args.communicator)
+        except:
+            comm = None
     else:
         comm = None
     # args = Args()
