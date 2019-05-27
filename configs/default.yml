@@ -8,6 +8,9 @@ gan_type: BIGGAN  # SNGAN or BIGGAN
 batchsize:
   BIGGAN: 5  # batchsize per gpu (only multiple gpu training is supported)
   SNGAN: 25
+image_sizes:
+  BIGGAN: 256
+  SNGAN: 128
 snapshot:
   BIGGAN: 'biggan.npz'
   SNGAN: 'sngan.npz'

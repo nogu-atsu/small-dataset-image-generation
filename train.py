@@ -1,4 +1,4 @@
-import os, sys, time
+import os, time
 from pathlib import Path
 import shutil
 import numpy as np
@@ -8,9 +8,7 @@ from chainer import cuda
 from chainer.links import VGG16Layers as VGG
 from chainer.training import extensions
 import chainermn
-from PIL import Image
 
-sys.path.append("evaluations/")
 import yaml
 import source.yaml_utils as yaml_utils
 from gen_models.ada_generator import AdaBIGGAN, AdaSNGAN
@@ -50,11 +48,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--gpu", "-g", type=int, default=0)
     parser.add_argument("--config_path", type=str, default="configs/default.yml")
-    parser.add_argument("--results_dir", type=str, default="./results/gans")
-    parser.add_argument("--row", type=int, default=5)
-    parser.add_argument("--columns", type=int, default=5)
-    parser.add_argument("--classes", default=None)
-    parser.add_argument("--resume", "-r", type=str, default="")
+    # parser.add_argument("--resume", "-r", type=str, default="")
     parser.add_argument("--communicator", type=str, default="hierarchical")
     parser.add_argument("--suffix", type=int, default=0)
 
@@ -67,7 +61,8 @@ if __name__ == "__main__":
     print("snapshot->", now)
 
     # image size
-    config.image_size = {"SNGAN": 128, "BIGGAN": 256}[config.gan_type]
+    config.image_size = config.image_sizes[config.gan_type]
+    image_size = config.image_size
 
     if config.gan_type == "BIGGAN":
         try:
@@ -76,12 +71,15 @@ if __name__ == "__main__":
             comm = None
     else:
         comm = None
-    # args = Args()
 
     device = args.gpu if comm is None else comm.intra_rank
-    chainer.cuda.get_device(device).use()
+    cuda.get_device(device).use()
 
-    xp = cuda.cupy
+    if args.gpu >= 0:
+        cuda.get_device_from_id(args.gpu)
+        xp = cuda.cupy
+    else:
+        xp = np
 
     np.random.seed(1234)
 
@@ -93,7 +91,6 @@ if __name__ == "__main__":
     layers = ["conv1_1", "conv1_2", "conv2_1", "conv2_2", "conv3_1", "conv3_2", "conv3_3", "conv4_1", "conv4_2",
               "conv4_3"]
 
-    image_size = config.image_size
 
     img = xp.array(get_dataset(image_size, config))
 
@@ -110,7 +107,6 @@ if __name__ == "__main__":
 
     ims = []
     datasize = len(img)
-    print(datasize)
 
     target = img
 
@@ -118,11 +114,9 @@ if __name__ == "__main__":
     if config.gan_type == "BIGGAN":
         gen = AdaBIGGAN(config, datasize, comm=comm)
     elif config.gan_type == "SNGAN":
-        n_classes = config.n_classes if hasattr(config, 'n_classes') else 1000
-        gen = AdaSNGAN(config, datasize, n_classes=n_classes, comm=comm)
+        gen = AdaSNGAN(config, datasize, comm=comm)
 
-    out = args.results_dir
-    if not config.random:
+    if not config.random:  # load pre-trained generator model
         chainer.serializers.load_npz(config.snapshot[config.gan_type], gen.gen)
     gen.to_gpu(device)
     gen.gen.to_gpu(device)
