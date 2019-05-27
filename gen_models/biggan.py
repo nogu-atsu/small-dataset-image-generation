@@ -2,7 +2,7 @@
 import chainer
 from chainer import functions as F
 from chainer import links as L
-from source.links.shared_embedding_batch_normalization import SharedEmbeddingBatchNormalization
+from source.links.hyper_batch_normalization import HyperBatchNormalization
 from source.links.sn_convolution_2d import SNConvolution2D
 from source.links.sn_linear import SNLinear
 
@@ -22,9 +22,9 @@ class ResBlock(chainer.Chain):
     def __init__(self, in_size, in_channel, out_channel):
         super(ResBlock, self).__init__()
         with self.init_scope():
-            self.HyperBN = SharedEmbeddingBatchNormalization(in_size, in_channel)
+            self.HyperBN = HyperBatchNormalization(in_size, in_channel)
             self.conv0 = SNConvolution2D(in_channel, out_channel, 3, 1, 1)
-            self.HyperBN_1 = SharedEmbeddingBatchNormalization(in_size, out_channel)
+            self.HyperBN_1 = HyperBatchNormalization(in_size, out_channel)
             self.conv1 = SNConvolution2D(out_channel, out_channel, 3, 1, 1)
             self.conv_sc = SNConvolution2D(in_channel, out_channel, 1, 1, 0)
 
