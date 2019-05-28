@@ -27,7 +27,7 @@ data_path
 - Specify the dataset directory name to `dataset` in `configs/default.yml`.
 
 
-## Runaa
+## Run
 - Download SNGAN-128 or BigGAN-256 generator pre-trained on ImageNet.
     - SNGAN generator can be downloaded from https://drive.google.com/drive/folders/1m04Db3HbN10Tz5XHqiPpIg8kw23fkbSi (ResNetGenerator_850000.npz)
     - BigGAN generator can be saved by https://github.com/nogu-atsu/chainer-BIGGAN (Code to save model is abailable soon.)
