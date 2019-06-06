@@ -12,7 +12,7 @@ import chainermn
 import yaml
 import source.yaml_utils as yaml_utils
 from gen_models.ada_generator import AdaBIGGAN, AdaSNGAN
-from dis_models.patch_discriminator import Discriminator as PatchDiscriminator
+from dis_models.patch_discriminator import PatchDiscriminator
 from updater import Updater
 
 
