@@ -51,6 +51,7 @@ if __name__ == "__main__":
     # parser.add_argument("--resume", "-r", type=str, default="")
     parser.add_argument("--communicator", type=str, default="hierarchical")
     parser.add_argument("--suffix", type=int, default=0)
+    parser.add_argument("--resume", type=str, default="")
 
     args = parser.parse_args()
     now = int(time.time()) * 10 + args.suffix
@@ -141,6 +142,8 @@ if __name__ == "__main__":
 
     if comm is None or comm.rank == 0:
         report_keys = ['epoch', 'iteration', 'loss_gen', 'loss_dis']
+        trainer.extend(extensions.snapshot(filename="snapshot" + str(now) + "_{.updater.iteration}.h5"),
+                       trigger=(config.snapshot_interval, 'iteration'))
 
         trainer.extend(extensions.snapshot_object(gen, "gen" + str(now) + "_{.updater.iteration}.h5"),
                        trigger=(config.snapshot_interval, "iteration"))
@@ -156,4 +159,6 @@ if __name__ == "__main__":
         trainer.extend(models["gen"].evaluation(f"{config.save_path}{now}"),
                        trigger=(config.evaluation_interval, 'iteration'))
 
+    if args.resume:
+        chainer.serializers.load_npz(args.resume, trainer)
     trainer.run()

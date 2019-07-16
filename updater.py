@@ -30,7 +30,7 @@ class Updater(chainer.training.StandardUpdater):
 
         if self.config.exponential_shift_interval > 0 and \
                 (self.iteration + 1) % self.config.exponential_shift_interval == 0:
-            exponential_shift([self.gen, self.dis])
+            exponential_shift([self.gen, self.dis], scale=self.config.lr_scale)
 
         with chainer.using_config('train', self.config.train):
             self.gen.cleargrads()

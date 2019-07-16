@@ -19,7 +19,8 @@ class Config(object):
         if key in self.config:
             return self.config[key]
         else:
-            raise AttributeError(key)
+            return None
+            # raise AttributeError(key)
 
     def __getitem__(self, key):
         return self.config[key]
