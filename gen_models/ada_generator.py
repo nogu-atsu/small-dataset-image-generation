@@ -80,27 +80,19 @@ class AdaGenerator(chainer.Chain):
             vgg_features = vgg((x + 1) * 127.5 - mean, layers=layers)
 
             for layer in layers:
-                if layer in ["conv1_1", "conv1_2", "conv2_1", "conv2_2"]:
-                    if self.config.perceptual_type == "l1":
-                        loss = F.mean_absolute_error(target_features[layer], vgg_features[layer])
-                    elif self.config.perceptual_type == "l2":
-                        loss = F.mean_squared_error(target_features[layer], vgg_features[layer])
-                    l_per = 1 / loss.array / 10 if self.l_per < 0 or self.l_per > 1000 else self.l_per
-                    losses.append(backward(loss * l_per))
-                else:
-                    if self.config.perceptual_type == "l1":
-                        loss = F.mean_absolute_error(target_features[layer], vgg_features[layer])
-                    elif self.config.perceptual_type == "l2":
-                        loss = F.mean_squared_error(target_features[layer], vgg_features[layer])
-                    l_per = 1 / loss.array / 10 if self.l_per < 0 or self.l_per > 1000 else self.l_per
-                    losses.append(backward(loss * l_per))
+                if self.config.perceptual_type == "l1":
+                    loss = F.mean_absolute_error(target_features[layer], vgg_features[layer])
+                elif self.config.perceptual_type == "l2":
+                    loss = F.mean_squared_error(target_features[layer], vgg_features[layer])
+                l_per = 1 / loss.array / 10 if self.l_per < 0 or self.l_per > 1000 else self.l_per
+                losses.append(backward(loss * l_per))
                 chainer.reporter.report({f'loss_{layer}': loss})
 
         if self.l_emd > 0:
             losses.append(backward(self.EMD(self.z.W[perm]) * self.l_emd))
 
         if self.l_re > 0:
-            losses.append(backward(self.l1_reg() * self.l_re))
+            losses.append(backward(self.bs_reg() * self.l_re))
 
         if self.l_patch_dis > 0:
             losses.append(backward(self.patch_loss_gen(dis) * self.l_patch_dis))
@@ -117,7 +109,7 @@ class AdaGenerator(chainer.Chain):
         elif self.config.loss_type == "nsgan":
             loss = F.sigmoid_cross_entropy(dis_fake, self.xp.ones(dis_fake.shape, dtype="int32"))
         else:
-            raise NotImplementedError()
+            assert "loss type: {self.config.loss_type} is not supported"
         return loss
 
     def patch_loss_dis(self, real, dis, n_dis=5):
@@ -137,7 +129,7 @@ class AdaGenerator(chainer.Chain):
                 loss += F.mean(
                     F.batch_l2_norm_squared(chainer.grad([loss], [real], enable_double_backprop=True)[0])) * 1000
             else:
-                raise NotImplementedError()
+                assert "loss type: {self.config.loss_type} is not supported"
         return loss
 
     def gp_loss(self, x, z):
@@ -145,9 +137,9 @@ class AdaGenerator(chainer.Chain):
         grad, = chainer.grad([h], [z], enable_double_backprop=True)
         return F.mean(F.batch_l2_norm_squared(grad))
 
-    def l1_reg(self):
-        l1_re = F.mean(F.square(self.linear.W))
-        return l1_re
+    def bs_reg(self):
+        bs_re = F.mean(F.square(self.linear.W))
+        return bs_re
 
     def EMD(self, z):
         """
@@ -189,7 +181,6 @@ class AdaGenerator(chainer.Chain):
             return None, sum_loss / target.shape[0]
 
     def evaluation(self, test_image_folder):
-        xp = self.xp
 
         @chainer.training.make_extension()
         def evaluation(trainer):
@@ -242,8 +233,7 @@ class AdaGenerator(chainer.Chain):
 
 
 class AdaBIGGAN(AdaGenerator):
-    def __init__(self, config, batchsize, n_classes=0, softmax=True, comm=None, test=False):
-        self.softmax = softmax
+    def __init__(self, config, batchsize, comm=None, test=False):
         if not test:
             self.l_emd = config.l_emd
             self.l_re = config.l_re
@@ -297,8 +287,7 @@ class AdaBIGGAN(AdaGenerator):
 
 
 class AdaSNGAN(AdaGenerator):
-    def __init__(self, config, batchsize, n_classes=0, softmax=True, comm=None, test=False):
-        self.softmax = softmax
+    def __init__(self, config, batchsize, comm=None, test=False):
         if not test:
             self.l_emd = config.l_emd
             self.l_re = config.l_re
@@ -313,7 +302,7 @@ class AdaSNGAN(AdaGenerator):
 
         self.batchsize = batchsize
 
-        self.gen = SNGAN(n_classes=n_classes, normalize_stat=self.normalize_stat)
+        self.gen = SNGAN(n_classes=config.n_classes, normalize_stat=self.normalize_stat)
         self.gen.initialize_params()  # initialize gamma and beta
 
         self.dim_z = 128
@@ -347,12 +336,12 @@ class AdaSNGAN(AdaGenerator):
         h = self.gen(z.shape[0], z=z, gamma=self.gamma, beta=self.beta)
         return h
 
-    def l1_reg(self):
+    def bs_reg(self):
         xp = self.xp
-        l1_re = 0
+        bs_re = 0
         for g in self.gamma:
-            l1_re += F.mean_squared_error(g, xp.ones(g.shape, dtype="float32"))
+            bs_re += F.mean_squared_error(g, xp.ones(g.shape, dtype="float32"))
         for b in self.beta:
-            l1_re += F.mean_squared_error(b, xp.zeros(b.shape, dtype="float32"))
+            bs_re += F.mean_squared_error(b, xp.zeros(b.shape, dtype="float32"))
 
-        return l1_re
+        return bs_re
