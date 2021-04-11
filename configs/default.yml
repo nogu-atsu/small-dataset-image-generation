@@ -21,13 +21,13 @@ initialize: True
 not_initial_gamma: False
 not_initial_beta: False
 random: False
-data_path: "data directory path"
-dataset: "Anime"  # face, flower, flower_77, FFHQ, Anime
+data_path: "pytorch-small-dataset-image-generation/data"
+dataset: "anime"  # face, flower, flower_77, FFHQ, Anime
 save_path: "results/"
 
 train: False
 finetune: False
-datasize: 100
+datasize: 50
 initial_z: "zero" # "zero" or "random"
 l_emd: 0.1  # lambda for earth mover distance of z
 l_re: 0.02  # lambda for gamma and beta

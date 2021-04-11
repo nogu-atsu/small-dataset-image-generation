@@ -58,7 +58,7 @@ if __name__ == "__main__":
     config = yaml_utils.Config(yaml.load(open(args.config_path)))
     os.makedirs(f"{config.save_path}{now}", exist_ok=True)
     shutil.copy(args.config_path, f"{config.save_path}{now}/config{now}.yml")
-    shutil.copy("train.py", f"{config.save_path}{now}/train.py")
+    shutil.copy("pytorch-small-dataset-image-generation/train.py", f"{config.save_path}{now}/train.py")
     print("snapshot->", now)
 
     # image size
