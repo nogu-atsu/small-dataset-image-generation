@@ -4,7 +4,7 @@ progressbar_interval: 100
 snapshot_interval: 1000
 evaluation_interval: 100
 
-gan_type: BIGGAN  # SNGAN or BIGGAN
+gan_type: SNGAN  # SNGAN or BIGGAN
 batchsize:
   BIGGAN: 5  # batchsize per gpu (only multiple gpu training is supported)
   SNGAN: 25
@@ -13,7 +13,7 @@ image_sizes:
   SNGAN: 128
 snapshot:
   BIGGAN: 'biggan.npz'
-  SNGAN: 'sngan.npz'
+  SNGAN: 'models/sngan.npz'
 
 n_classes: 1000 # number of classes in pre-trained generator
 
