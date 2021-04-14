@@ -213,6 +213,12 @@ class AdaGenerator(chainer.Chain):
                 xs = xs.reshape((5, 5, 3, h, w))
                 xs = xs.transpose(0, 3, 1, 4, 2)
                 xs = xs.reshape((5 * h, 5 * w, 3))
+                count = 0
+                for i in range(5):
+                  for j in range(5):
+                    x = xs[i*h:(i+1)*h,j*w:(j+1)*w,:]
+                    Image.fromarray(x).save(f"{test_image_folder}/{count}_SEPERATE_recon_{tmp}.jpg")
+                    count += 1
                 Image.fromarray(xs).save(f"{test_image_folder}/{iteration}_recon_{tmp}.jpg")
 
                 xs = []

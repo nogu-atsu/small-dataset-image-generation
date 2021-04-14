@@ -4,7 +4,7 @@ progressbar_interval: 100
 snapshot_interval: 1000
 evaluation_interval: 100
 
-gan_type: SNGAN  # SNGAN or BIGGAN
+gan_type: BIGGAN  # SNGAN or BIGGAN
 batchsize:
   BIGGAN: 5  # batchsize per gpu (only multiple gpu training is supported)
   SNGAN: 25
@@ -13,7 +13,7 @@ image_sizes:
   SNGAN: 128
 snapshot:
   BIGGAN: 'biggan.npz'
-  SNGAN: 'models/sngan.npz'
+  SNGAN: 'sngan.npz'
 
 n_classes: 1000 # number of classes in pre-trained generator
 
@@ -21,13 +21,13 @@ initialize: True
 not_initial_gamma: False
 not_initial_beta: False
 random: False
-data_path: "small-dataset-image-generation/data"
-dataset: "anime"  # face, flower, flower_77, FFHQ, Anime
+data_path: "data directory path"
+dataset: "flowers"  # face, flower, flower_77, FFHQ, Anime
 save_path: "results/"
 
 train: False
 finetune: False
-datasize: 50
+datasize: 32
 initial_z: "zero" # "zero" or "random"
 l_emd: 0.1  # lambda for earth mover distance of z
 l_re: 0.02  # lambda for gamma and beta
