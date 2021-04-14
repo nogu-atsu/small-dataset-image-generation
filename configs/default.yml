@@ -21,7 +21,7 @@ initialize: True
 not_initial_gamma: False
 not_initial_beta: False
 random: False
-data_path: "pytorch-small-dataset-image-generation/data"
+data_path: "small-dataset-image-generation/data"
 dataset: "anime"  # face, flower, flower_77, FFHQ, Anime
 save_path: "results/"
 
