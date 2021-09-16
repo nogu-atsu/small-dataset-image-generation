@@ -44,3 +44,4 @@ normalize_stat: False
 lr_g_linear: 0.0000001 # lr for linear
 exponential_shift_interval: 3000
 init_lr: 0.03
+lr_scale: 0.2
