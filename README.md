@@ -2,8 +2,6 @@
 
 The author's official **minimal** implementation of [Image Generation from Small Datasets via Batch Statistics Adaptation](https://arxiv.org/abs/1904.01774).
 
-Clean codes and optimal hyperparameters will be available soon.
-
 ## Requirements
 
 ```angular2
