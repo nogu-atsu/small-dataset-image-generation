@@ -43,6 +43,30 @@ mpirun python ./train.py --config_path configs/default.yml
 ```
 Multiple GPU training is supported only for BigGAN. For BigGAN ,we used 4 GPUs for training.
 
+## Inference
+Initialize the generator and load pretrained weights.
+
+e.g. biggan based model
+```
+gen = AdaBIGGAN(config, datasize, comm=comm)
+chainer.serializers.load_npz("your_pretrained_model.h5", gen.gen)
+gen.to_gpu(device) # send to gpu if necessary
+gen.gen.to_gpu(device) # send to gpu if necessary
+```
+
+Random sampling
+
+e.g. randomly sample 5 images with temperature=0.5 without truncation
+```
+random_imgs = gen.random(tmp=0.5, n=5, truncate=False)
+```
+
+Interpolation
+
+e.g. interpolation between 0th and 1st image
+```
+interpolated_imgs = gen.interpolate(self, source=0, dest=1, num=5)
+```
 
 ## Acknowledgement
 Pytorch [re-implementation](https://github.com/apple2373/PyTorch-SmallGAN) from Satoshi Tsutsui and Minjun Li. 
